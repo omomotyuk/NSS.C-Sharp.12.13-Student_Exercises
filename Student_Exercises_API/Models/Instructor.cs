@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Student_Exercises_API.Model
 {
-    class Instructor: IRecord
+    public class Instructor: IRecord
     {
         public int Id { get; set; }
         public string FirstName { get; set; }
