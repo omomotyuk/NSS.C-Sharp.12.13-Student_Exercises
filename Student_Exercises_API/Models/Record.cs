@@ -1,9 +1,9 @@
-﻿using Student_Exercises_ADO.NET.Interface;
+﻿using Student_Exercises_API.Interface;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Student_Exercises_ADO.NET.Model
+namespace Student_Exercises_API.Model
 {
     class Record : IRecord
     {
