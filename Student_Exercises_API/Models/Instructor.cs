@@ -13,7 +13,7 @@ namespace Student_Exercises_API.Model
         public string SlackHandle { get; set; }
         public int CohortId { get; set; }
         public string Speciality { get; set; }
-        public string CohortName { get; set; }
+        public Cohort Cohort { get; set; }
 
         public void Set(Dictionary<string, string> data)
         {
@@ -39,9 +39,9 @@ namespace Student_Exercises_API.Model
                     case "Speciality":
                         Speciality = item.Value;
                         break;
-                    case "[Name]":
+                    /*case "[Name]":
                         CohortName = item.Value;
-                        break;
+                        break;*/
                     default:
                         break;
                 }
