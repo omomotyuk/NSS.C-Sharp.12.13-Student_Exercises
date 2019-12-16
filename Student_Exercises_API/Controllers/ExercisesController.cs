@@ -73,7 +73,7 @@ namespace Student_Exercises_API.Controllers
                         FROM Exercise
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
                     Exercise exercise = null;
 
@@ -107,7 +107,7 @@ namespace Student_Exercises_API.Controllers
                     cmd.Parameters.Add(new SqlParameter("@name", exercise.Name));
                     cmd.Parameters.Add(new SqlParameter("@language", exercise.Language));
 
-                    int newId = (int)cmd.ExecuteScalar();
+                    int newId = (int) await cmd.ExecuteScalarAsync();
                     exercise.Id = newId;
                     return CreatedAtRoute("GetExercise", new { id = newId }, exercise);
                 }
@@ -132,7 +132,7 @@ namespace Student_Exercises_API.Controllers
                         cmd.Parameters.Add(new SqlParameter("@language", exercise.Language));
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                        int rowsAffected = cmd.ExecuteNonQuery();
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
                         if (rowsAffected > 0)
                         {
                             return new StatusCodeResult(StatusCodes.Status204NoContent);
@@ -143,7 +143,8 @@ namespace Student_Exercises_API.Controllers
             }
             catch (Exception)
             {
-                if (!ExerciseExists(id))
+                bool exists = await ExerciseExists(id);
+                if (!exists)
                 {
                     return NotFound();
                 }
@@ -167,7 +168,7 @@ namespace Student_Exercises_API.Controllers
                         cmd.CommandText = @"DELETE FROM Exercise WHERE Id = @id";
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                        int rowsAffected = cmd.ExecuteNonQuery();
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
                         if (rowsAffected > 0)
                         {
                             return new StatusCodeResult(StatusCodes.Status204NoContent);
@@ -178,7 +179,8 @@ namespace Student_Exercises_API.Controllers
             }
             catch (Exception)
             {
-                if (!ExerciseExists(id))
+                bool exists = await ExerciseExists(id);
+                if (!exists)
                 {
                     return NotFound();
                 }
@@ -189,7 +191,7 @@ namespace Student_Exercises_API.Controllers
             }
         }
 
-        private bool ExerciseExists(int id)
+        private async Task<bool> ExerciseExists(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -202,7 +204,7 @@ namespace Student_Exercises_API.Controllers
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     return reader.Read();
                 }
             }
