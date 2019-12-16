@@ -39,7 +39,7 @@ namespace Student_Exercises_API.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = "SELECT Id, Name, Language FROM Exercise";
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     List<Exercise> exercises = new List<Exercise>();
 
                     while (reader.Read())
