@@ -32,7 +32,6 @@ namespace Student_Exercises_API.Controllers
 
         [HttpGet]
         public async Task<IActionResult> Get()
-        //public List<Exercise> Get()
         {
             using (SqlConnection conn = Connection)
             {
@@ -61,7 +60,7 @@ namespace Student_Exercises_API.Controllers
             }
         }
 
-        /*[HttpGet("{id}", Name = "GetCoffee")]
+        [HttpGet("{id}", Name = "GetExercise")]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
             using (SqlConnection conn = Connection)
@@ -70,54 +69,53 @@ namespace Student_Exercises_API.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                        SELECT
-                            Id, Title, BeanType
-                        FROM Coffee
+                        SELECT Id, Name, Language
+                        FROM Exercise
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    Coffee coffee = null;
+                    Exercise exercise = null;
 
                     if (reader.Read())
                     {
-                        coffee = new Coffee
+                        exercise = new Exercise
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            Title = reader.GetString(reader.GetOrdinal("Title")),
-                            BeanType = reader.GetString(reader.GetOrdinal("BeanType"))
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            Language = reader.GetString(reader.GetOrdinal("Language"))
                         };
                     }
                     reader.Close();
 
-                    return Ok(coffee);
+                    return Ok(exercise);
                 }
             }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] Coffee coffee)
+        public async Task<IActionResult> Post([FromBody] Exercise exercise)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"INSERT INTO Coffee (Title, BeanType)
+                    cmd.CommandText = @"INSERT INTO Exercise (Name, Language)
                                         OUTPUT INSERTED.Id
-                                        VALUES (@title, @beanType)";
-                    cmd.Parameters.Add(new SqlParameter("@title", coffee.Title));
-                    cmd.Parameters.Add(new SqlParameter("@beanType", coffee.BeanType));
+                                        VALUES (@name, @language)";
+                    cmd.Parameters.Add(new SqlParameter("@name", exercise.Name));
+                    cmd.Parameters.Add(new SqlParameter("@language", exercise.Language));
 
                     int newId = (int)cmd.ExecuteScalar();
-                    coffee.Id = newId;
-                    return CreatedAtRoute("GetCoffee", new { id = newId }, coffee);
+                    exercise.Id = newId;
+                    return CreatedAtRoute("GetCoffee", new { id = newId }, exercise);
                 }
             }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Coffee coffee)
+        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Exercise exercise)
         {
             try
             {
@@ -126,12 +124,12 @@ namespace Student_Exercises_API.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"UPDATE Coffee
-                                            SET Title = @title,
-                                                BeanType = @beanType
+                        cmd.CommandText = @"UPDATE Exercise
+                                            SET Name = @name,
+                                                Language = @language
                                             WHERE Id = @id";
-                        cmd.Parameters.Add(new SqlParameter("@title", coffee.Title));
-                        cmd.Parameters.Add(new SqlParameter("@beanType", coffee.BeanType));
+                        cmd.Parameters.Add(new SqlParameter("@name", exercise.Name));
+                        cmd.Parameters.Add(new SqlParameter("@language", exercise.Language));
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
@@ -145,7 +143,7 @@ namespace Student_Exercises_API.Controllers
             }
             catch (Exception)
             {
-                if (!CoffeeExists(id))
+                if (!ExerciseExists(id))
                 {
                     return NotFound();
                 }
@@ -166,7 +164,7 @@ namespace Student_Exercises_API.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"DELETE FROM Coffee WHERE Id = @id";
+                        cmd.CommandText = @"DELETE FROM Exercise WHERE Id = @id";
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
@@ -180,7 +178,7 @@ namespace Student_Exercises_API.Controllers
             }
             catch (Exception)
             {
-                if (!CoffeeExists(id))
+                if (!ExerciseExists(id))
                 {
                     return NotFound();
                 }
@@ -191,7 +189,7 @@ namespace Student_Exercises_API.Controllers
             }
         }
 
-        private bool CoffeeExists(int id)
+        private bool ExerciseExists(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -199,8 +197,8 @@ namespace Student_Exercises_API.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = @"
-                        SELECT Id, Title, BeanType
-                        FROM Coffee
+                        SELECT Id, Name, Language
+                        FROM Exercise
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
@@ -209,6 +207,5 @@ namespace Student_Exercises_API.Controllers
                 }
             }
         }
-        */
     }
 }
