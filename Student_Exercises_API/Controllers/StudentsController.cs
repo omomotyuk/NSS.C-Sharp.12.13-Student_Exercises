@@ -39,7 +39,7 @@ namespace Student_Exercises_API.Controllers
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
                     cmd.CommandText = "SELECT Id, FirstName, LastName, SlackHandle, CohortId FROM Student";
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     List<Student> students = new List<Student>();
 
                     while (reader.Read())
@@ -62,6 +62,80 @@ namespace Student_Exercises_API.Controllers
             }
         }
 
+        //
+        //
+        [HttpGet]
+        public async Task<IActionResult> Get(string q)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT s.Id, s.FirstName, s.LastName, s.SlackHandle, s.CohortId as StudentCohortId, 
+                                               c.Id, c.Name
+                                        FROM Student s
+                                        LEFT JOIN Cohort c 
+                                        ON s.CohortId = c.Id
+                                        WHERE s.LastName LIKE @q";
+
+                    cmd.Parameters.Add(new SqlParameter("@q", "%" + q + "%"));
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+                    List<Student> students = new List<Student>();
+                    while (reader.Read())
+                    {
+                        var studentId = reader.GetInt32(reader.GetOrdinal("Id"));
+                        var studentAlreadyAdded = students.FirstOrDefault(s => s.Id == studentId);
+
+                        if (studentAlreadyAdded == null)
+                        {
+                            Student student = new Student
+                            {
+                                Id = studentId,
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                                SlackHandle = reader.GetString(reader.GetOrdinal("SlackHandle")),
+                                CohortId = reader.GetInt32(reader.GetOrdinal("CohortId")),
+                                Exercises = new List<Exercise>()
+                            };
+                            students.Add(student);
+
+                            var hasEmployee = !reader.IsDBNull(reader.GetOrdinal("ExerciseId"));
+
+                            if (hasEmployee)
+                            {
+                                student.Exercises.Add(new Exercise()
+                                {
+                                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                                    Language = reader.GetString(reader.GetOrdinal("Language")),
+                                    Id = reader.GetInt32(reader.GetOrdinal("ExerciseId"))
+                                });
+                            }
+                        }
+                        else
+                        {
+                            var hasEmployee = !reader.IsDBNull(reader.GetOrdinal("ExerciseId"));
+
+                            if (hasEmployee)
+                            {
+                                studentAlreadyAdded.Exercises.Add(new Exercise()
+                                {
+                                    Name = reader.GetString(reader.GetOrdinal("Name")),
+                                    Language = reader.GetString(reader.GetOrdinal("Language")),
+                                    Id = reader.GetInt32(reader.GetOrdinal("EmployeeId"))
+                                });
+                            }
+                        }
+                    }
+                    reader.Close();
+
+                    return Ok(students);
+                }
+            }
+        }
+        //
+        //
+
         [HttpGet("{id}", Name = "GetStudent")]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
@@ -75,7 +149,7 @@ namespace Student_Exercises_API.Controllers
                         FROM Student
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
 
                     Student student = null;
 
@@ -97,6 +171,56 @@ namespace Student_Exercises_API.Controllers
             }
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Get([FromQuery]int? cohortId, [FromQuery]string lastName)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"SELECT 
+                                        Id, 
+                                        FirstName, 
+                                        LastName, 
+                                        SlackHandle, 
+                                        CohortId 
+                                        FROM Student
+                                        WHERE 1=1";
+                    if (cohortId != null)
+                    {
+                        cmd.CommandText += " AND CohortId = @cohortId";
+                        cmd.Parameters.Add(new SqlParameter("@cohortId", cohortId));
+                    }
+                    if (lastName != null)
+                    {
+                        cmd.CommandText += " AND LastName LIKE @lastName";
+                        cmd.Parameters.Add(new SqlParameter("@lastName", "%" + lastName + "%"));
+                    }
+
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
+                    List<Student> students = new List<Student>();
+                    
+                    while (reader.Read())
+                    {
+                        Student student = new Student
+                        {
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                            LastName = reader.GetString(reader.GetOrdinal("LastName")),
+                            SlackHandle = reader.GetString(reader.GetOrdinal("SlackHandle")),
+                            CohortId = reader.GetInt32(reader.GetOrdinal("CohortId"))
+                        };
+                        
+                        students.Add(student);
+                    }
+                    reader.Close();
+
+                    return Ok(students);
+                }
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Student student)
         {
@@ -113,7 +237,7 @@ namespace Student_Exercises_API.Controllers
                     cmd.Parameters.Add(new SqlParameter("@slackHandle", student.SlackHandle));
                     cmd.Parameters.Add(new SqlParameter("@cohortId", student.CohortId));
 
-                    int newId = (int)cmd.ExecuteScalar();
+                    int newId = (int) await cmd.ExecuteScalarAsync();
                     student.Id = newId;
                     return CreatedAtRoute("GetStudent", new { id = newId }, student);
                 }
@@ -142,7 +266,7 @@ namespace Student_Exercises_API.Controllers
                         cmd.Parameters.Add(new SqlParameter("@cohortId", student.CohortId)); ;
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                        int rowsAffected = cmd.ExecuteNonQuery();
+                        int rowsAffected = await cmd.ExecuteNonQueryAsync();
                         if (rowsAffected > 0)
                         {
                             return new StatusCodeResult(StatusCodes.Status204NoContent);
@@ -153,8 +277,8 @@ namespace Student_Exercises_API.Controllers
             }
             catch (Exception)
             {
-                if (!StudentExists(id))
-                {
+                bool exists = await StudentExists(id);
+                if (!exists)
                     return NotFound();
                 }
                 else
@@ -188,7 +312,8 @@ namespace Student_Exercises_API.Controllers
             }
             catch (Exception)
             {
-                if (!StudentExists(id))
+                bool exists = await StudentExists(id);
+                if ( !exists )
                 {
                     return NotFound();
                 }
@@ -199,7 +324,7 @@ namespace Student_Exercises_API.Controllers
             }
         }
 
-        private bool StudentExists(int id)
+        private async Task<bool> StudentExists(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -212,7 +337,7 @@ namespace Student_Exercises_API.Controllers
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 
-                    SqlDataReader reader = cmd.ExecuteReader();
+                    SqlDataReader reader = await cmd.ExecuteReaderAsync();
                     return reader.Read();
                 }
             }
