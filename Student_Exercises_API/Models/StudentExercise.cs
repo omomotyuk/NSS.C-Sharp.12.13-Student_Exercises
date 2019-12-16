@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Student_Exercises_ADO.NET.Model
+namespace Student_Exercises_API.Model
 {
     class StudentExercise
     {
