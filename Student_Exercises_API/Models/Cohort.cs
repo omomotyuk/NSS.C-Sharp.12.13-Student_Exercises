@@ -8,7 +8,7 @@ namespace Student_Exercises_API.Model
     {
         public int Id { get; set; }
         public string Name { get; set; }
-        public List<Instructor> Instructors { get; set; }
-        public List<Student> Students { get; set; }
+        public List<Instructor> Instructors { get; set; } = new List<Instructor>();
+        public List<Student> Students { get; set; } = new List<Student>();
     }
 }

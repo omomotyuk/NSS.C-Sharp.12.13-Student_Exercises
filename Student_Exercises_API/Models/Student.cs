@@ -14,8 +14,20 @@ namespace Student_Exercises_API.Model
         public int CohortId { get; set; }
         public Cohort Cohort { get; set; }
         public List<Exercise> Exercises { get; set; }
-    
-        public void Set( Dictionary<string, string> data )
+
+        public Student()
+        {
+            Cohort = new Cohort();
+        }   
+           // ctor  
+            
+            
+            
+            
+            
+            
+            
+            public void Set( Dictionary<string, string> data )
         {
             foreach ( KeyValuePair<string, string> item in data )
             {
