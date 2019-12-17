@@ -15,6 +15,11 @@ namespace Student_Exercises_API.Model
         public string Speciality { get; set; }
         public Cohort Cohort { get; set; }
 
+        public Instructor()
+        {
+            Cohort = new Cohort();
+        }
+
         public void Set(Dictionary<string, string> data)
         {
             foreach (KeyValuePair<string, string> item in data)

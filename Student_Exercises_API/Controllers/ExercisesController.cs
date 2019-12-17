@@ -60,6 +60,11 @@ namespace Student_Exercises_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Get a list of all exercises
+        /// </summary>
+        /// <param name="id">Search term for exercise id</param>
+        /// <returns>return all exercise</returns>
         [HttpGet("{id}", Name = "GetExercise")]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
